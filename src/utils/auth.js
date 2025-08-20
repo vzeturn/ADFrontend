@@ -10,7 +10,7 @@ class AuthUtils {
 
     // Check if user is authenticated
     isAuthenticated() {
-        return !!api.getSessionId() && !!this.currentUser;
+        return !!this.getSessionId() && !!this.currentUser;
     }
 
     // Get current user
@@ -32,7 +32,12 @@ class AuthUtils {
     loadUserFromStorage() {
         const stored = localStorage.getItem('currentUser');
         if (stored) {
-            this.currentUser = JSON.parse(stored);
+            try {
+                this.currentUser = JSON.parse(stored);
+            } catch (error) {
+                console.error('Failed to parse stored user:', error);
+                localStorage.removeItem('currentUser');
+            }
         }
     }
 
@@ -92,9 +97,25 @@ class AuthUtils {
         }, 2000);
     }
 
+    // Get session ID
+    getSessionId() {
+        return localStorage.getItem('sessionId');
+    }
+
+    // Set session ID
+    setSessionId(sessionId) {
+        if (sessionId) {
+            localStorage.setItem('sessionId', sessionId);
+        } else {
+            localStorage.removeItem('sessionId');
+        }
+    }
+
     // Login process
     async login(username, password, rememberMe = false) {
         try {
+            // Import api dynamically to avoid circular dependency
+            const { api } = await import('../services/api.js');
             const response = await api.login(username, password, rememberMe);
             
             if (response.success) {
@@ -114,18 +135,25 @@ class AuthUtils {
     // Logout process
     async logout() {
         try {
+            const { api } = await import('../services/api.js');
             await api.logout();
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
             this.cleanup();
-            showPage('login');
+            // Use window.app if available, otherwise redirect
+            if (window.app && typeof window.app.showPage === 'function') {
+                window.app.showPage('login');
+            } else {
+                window.location.reload();
+            }
         }
     }
 
     // Validate existing session
     async validateSession() {
         try {
+            const { api } = await import('../services/api.js');
             const response = await api.validateSession();
             if (response.success && response.data?.User) {
                 this.setCurrentUser(response.data.User);
@@ -144,6 +172,7 @@ class AuthUtils {
     // Refresh session
     async refreshSession() {
         try {
+            const { api } = await import('../services/api.js');
             const response = await api.refreshSession();
             if (response.success) {
                 this.showAlert('Session refreshed successfully', 'success', 3000);
@@ -166,7 +195,7 @@ class AuthUtils {
             clearInterval(this.sessionTimer);
             this.sessionTimer = null;
         }
-        api.setSessionId(null);
+        this.setSessionId(null);
         localStorage.removeItem('currentUser');
     }
 
@@ -242,19 +271,118 @@ class AuthUtils {
     // Show/hide password toggle
     togglePasswordVisibility(inputId, buttonId) {
         const input = document.getElementById(inputId);
-        const button = document.getElementById(buttonId);
-        const icon = button.querySelector('i');
+        const button = buttonId ? document.getElementById(buttonId) : input?.nextElementSibling;
+        const icon = button?.querySelector('i');
 
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.className = 'bi bi-eye-slash';
-        } else {
-            input.type = 'password';
-            icon.className = 'bi bi-eye';
+        if (input && button && icon) {
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
         }
+    }
+}
+
+// Session management functions
+export function setSession(sessionId, user) {
+    if (sessionId) {
+        localStorage.setItem('sessionId', sessionId);
+    }
+    if (user) {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+    }
+}
+
+export function getSession() {
+    const sessionId = localStorage.getItem('sessionId');
+    const userStr = localStorage.getItem('currentUser');
+    
+    if (!sessionId) return null;
+    
+    let user = null;
+    if (userStr) {
+        try {
+            user = JSON.parse(userStr);
+        } catch (error) {
+            console.error('Failed to parse stored user:', error);
+        }
+    }
+    
+    return { sessionId, user };
+}
+
+export function clearSession() {
+    localStorage.removeItem('sessionId');
+    localStorage.removeItem('currentUser');
+}
+
+export function startSessionTimer(expiresIn, onExpire, onWarning) {
+    const expiresAt = new Date(Date.now() + expiresIn * 1000);
+    const warningTime = 5 * 60 * 1000; // 5 minutes before expiry
+    
+    const timer = setInterval(() => {
+        const now = Date.now();
+        const timeLeft = expiresAt - now;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            onExpire();
+        } else if (timeLeft <= warningTime) {
+            const minutesLeft = Math.ceil(timeLeft / (1000 * 60));
+            onWarning(minutesLeft);
+        }
+    }, 1000);
+    
+    return timer;
+}
+
+export function autoRefreshSession(onSuccess, onError) {
+    const refreshInterval = 15 * 60 * 1000; // 15 minutes
+    
+    const timer = setInterval(async () => {
+        try {
+            const { api } = await import('../services/api.js');
+            const response = await api.refreshSession();
+            
+            if (response.success) {
+                onSuccess();
+            } else {
+                throw new Error(response.message || 'Session refresh failed');
+            }
+        } catch (error) {
+            console.error('Auto refresh failed:', error);
+            onError();
+        }
+    }, refreshInterval);
+    
+    return timer;
+}
+
+export function togglePasswordVisibility(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    const button = input.nextElementSibling;
+    if (!button) return;
+    
+    const icon = button.querySelector('i');
+    if (!icon) return;
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye';
     }
 }
 
 // Create global auth instance
 const auth = new AuthUtils();
 window.auth = auth;
+
+// Export for use in other files
+export { auth };

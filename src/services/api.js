@@ -3,7 +3,7 @@
 // API service for communicating with backend
 class ApiService {
     constructor() {
-        this.baseUrl = 'https://localhost:7001/api'; // Backend URL
+        this.baseUrl = 'https://localhost:7142/api'; // Backend URL (updated)
         this.sessionId = null;
     }
 
@@ -44,7 +44,15 @@ class ApiService {
 
         try {
             const response = await fetch(url, config);
-            const data = await response.json();
+            
+            // Handle non-JSON responses
+            let data;
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                data = await response.json();
+            } else {
+                data = { message: await response.text() };
+            }
 
             if (!response.ok) {
                 throw new Error(data.message || `HTTP error! status: ${response.status}`);
@@ -60,7 +68,7 @@ class ApiService {
     // Authentication methods
     async login(username, password, rememberMe = false) {
         try {
-            const response = await this.request('/auth/login', {
+            const response = await this.request('/Auth/login', {
                 method: 'POST',
                 body: JSON.stringify({
                     username,
@@ -81,7 +89,7 @@ class ApiService {
 
     async logout() {
         try {
-            const response = await this.request('/auth/logout', {
+            const response = await this.request('/Auth/logout', {
                 method: 'POST'
             });
 
@@ -96,7 +104,7 @@ class ApiService {
 
     async validateSession() {
         try {
-            return await this.request('/auth/validate');
+            return await this.request('/Auth/validate');
         } catch (error) {
             // If session validation fails, clear it
             this.setSessionId(null);
@@ -106,7 +114,7 @@ class ApiService {
 
     async getCurrentUser() {
         try {
-            return await this.request('/auth/me');
+            return await this.request('/Auth/me');
         } catch (error) {
             throw new Error(error.message || 'Failed to get user information');
         }
@@ -114,7 +122,7 @@ class ApiService {
 
     async refreshSession() {
         try {
-            return await this.request('/auth/refresh', {
+            return await this.request('/Auth/refresh', {
                 method: 'POST'
             });
         } catch (error) {
@@ -124,7 +132,7 @@ class ApiService {
 
     async getSessionInfo() {
         try {
-            return await this.request('/auth/session-info');
+            return await this.request('/Auth/session-info');
         } catch (error) {
             throw new Error(error.message || 'Failed to get session info');
         }
@@ -133,20 +141,18 @@ class ApiService {
     // User management methods
     async getUserProfile() {
         try {
-            return await this.request('/user/profile');
+            return await this.request('/User/profile');
         } catch (error) {
             throw new Error(error.message || 'Failed to get user profile');
         }
     }
 
-    async changePassword(currentPassword, newPassword, confirmPassword) {
+    async changePassword(newPassword) {
         try {
-            return await this.request('/user/change-password', {
+            return await this.request('/User/change-password', {
                 method: 'POST',
                 body: JSON.stringify({
-                    currentPassword,
-                    newPassword,
-                    confirmPassword
+                    newPassword
                 })
             });
         } catch (error) {
@@ -156,7 +162,7 @@ class ApiService {
 
     async getAccountStatus() {
         try {
-            return await this.request('/user/account-status');
+            return await this.request('/User/account-status');
         } catch (error) {
             throw new Error(error.message || 'Failed to get account status');
         }
@@ -164,7 +170,7 @@ class ApiService {
 
     async testADConnection() {
         try {
-            return await this.request('/user/test-ad-connection');
+            return await this.request('/User/test-ad-connection');
         } catch (error) {
             throw new Error(error.message || 'Failed to test AD connection');
         }
@@ -184,5 +190,19 @@ class ApiService {
 // Create global API instance
 const api = new ApiService();
 
+// Export individual functions for use in other files
+export const login = (username, password, rememberMe = false) => api.login(username, password, rememberMe);
+export const logout = () => api.logout();
+export const validateSession = () => api.validateSession();
+export const getCurrentUser = () => api.getCurrentUser();
+export const refreshSession = () => api.refreshSession();
+export const getSessionInfo = () => api.getSessionInfo();
+export const getProfile = () => api.getUserProfile();
+export const changePassword = (newPassword) => api.changePassword(newPassword);
+export const getAccountStatus = () => api.getAccountStatus();
+export const testADConnection = () => api.testADConnection();
+export const healthCheck = () => api.healthCheck();
+
 // Export for use in other files
 window.api = api;
+export { api };
