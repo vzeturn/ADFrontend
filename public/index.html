@@ -1,0 +1,330 @@
+<!-- Frontend/public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AD Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app" class="min-vh-100">
+        <!-- Navigation -->
+        <nav id="navbar" class="navbar navbar-expand-lg navbar-dark bg-primary d-none">
+            <div class="container">
+                <a class="navbar-brand" href="#">
+                    <i class="bi bi-shield-check me-2"></i>AD Management
+                </a>
+                <div class="navbar-nav ms-auto">
+                    <span id="user-info" class="navbar-text me-3"></span>
+                    <button id="logout-btn" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-box-arrow-right me-1"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Login Page -->
+        <div id="login-page" class="container-fluid vh-100">
+            <div class="row h-100">
+                <div class="col-md-6 d-flex align-items-center justify-content-center bg-light">
+                    <div class="text-center">
+                        <i class="bi bi-shield-check text-primary" style="font-size: 4rem;"></i>
+                        <h2 class="mt-3 text-primary">AD Management System</h2>
+                        <p class="text-muted">Secure Active Directory Management Portal</p>
+                    </div>
+                </div>
+                <div class="col-md-6 d-flex align-items-center justify-content-center">
+                    <div class="card shadow-lg border-0" style="width: 400px;">
+                        <div class="card-body p-5">
+                            <h3 class="card-title text-center mb-4">Sign In</h3>
+                            <form id="login-form">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                        <input type="text" class="form-control" id="username" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                        <input type="password" class="form-control" id="password" required>
+                                        <button class="btn btn-outline-secondary" type="button" id="toggle-password">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="remember-me">
+                                    <label class="form-check-label" for="remember-me">Remember me</label>
+                                </div>
+                                <div id="login-error" class="alert alert-danger d-none"></div>
+                                <button type="submit" id="login-btn" class="btn btn-primary w-100">
+                                    <span id="login-spinner" class="spinner-border spinner-border-sm d-none me-2"></span>
+                                    Sign In
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Page -->
+        <div id="dashboard-page" class="d-none">
+            <div class="container py-4">
+                <div class="row">
+                    <div class="col-12">
+                        <h1 class="mb-4">Dashboard</h1>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <!-- User Profile Card -->
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="bi bi-person-circle text-primary me-3" style="font-size: 2rem;"></i>
+                                    <div>
+                                        <h5 class="card-title mb-1">My Profile</h5>
+                                        <p class="card-text text-muted small">View and manage your information</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline-primary w-100" onclick="showPage('profile')">
+                                    <i class="bi bi-eye me-2"></i>View Profile
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Change Password Card -->
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="bi bi-key text-warning me-3" style="font-size: 2rem;"></i>
+                                    <div>
+                                        <h5 class="card-title mb-1">Change Password</h5>
+                                        <p class="card-text text-muted small">Update your account password</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline-warning w-100" onclick="showPage('change-password')">
+                                    <i class="bi bi-key me-2"></i>Change Password
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Status Card -->
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="bi bi-shield-check text-success me-3" style="font-size: 2rem;"></i>
+                                    <div>
+                                        <h5 class="card-title mb-1">Account Status</h5>
+                                        <p class="card-text text-muted small">Check your account information</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline-success w-100" onclick="showPage('account-status')">
+                                    <i class="bi bi-info-circle me-2"></i>View Status
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Info -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Welcome back!</h5>
+                                <p class="card-text">You are successfully logged in to the Active Directory Management System.</p>
+                                <small class="text-muted">Session expires in: <span id="session-timer">--</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div id="profile-page" class="d-none">
+            <div class="container py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1>My Profile</h1>
+                    <button class="btn btn-secondary" onclick="showPage('dashboard')">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </button>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Personal Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="profile-loading" class="text-center py-4">
+                                    <div class="spinner-border text-primary"></div>
+                                    <p class="mt-2">Loading profile...</p>
+                                </div>
+                                <div id="profile-content" class="d-none">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <strong>Username:</strong>
+                                            <p id="profile-username" class="mb-0 text-muted">-</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <strong>Display Name:</strong>
+                                            <p id="profile-displayname" class="mb-0 text-muted">-</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <strong>First Name:</strong>
+                                            <p id="profile-firstname" class="mb-0 text-muted">-</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <strong>Last Name:</strong>
+                                            <p id="profile-lastname" class="mb-0 text-muted">-</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <strong>Email:</strong>
+                                            <p id="profile-email" class="mb-0 text-muted">-</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <strong>Account Status:</strong>
+                                            <p id="profile-status" class="mb-0">-</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <strong>Last Login:</strong>
+                                            <p id="profile-lastlogin" class="mb-0 text-muted">-</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <strong>Password Last Set:</strong>
+                                            <p id="profile-passwordset" class="mb-0 text-muted">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="profile-error" class="alert alert-danger d-none"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password Page -->
+        <div id="change-password-page" class="d-none">
+            <div class="container py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1>Change Password</h1>
+                    <button class="btn btn-secondary" onclick="showPage('dashboard')">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </button>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Update Your Password</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="change-password-form">
+                                    <div class="mb-3">
+                                        <label for="current-password" class="form-label">Current Password</label>
+                                        <input type="password" class="form-control" id="current-password" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="new-password" class="form-label">New Password</label>
+                                        <input type="password" class="form-control" id="new-password" required>
+                                        <div class="form-text">Password must be at least 8 characters long.</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="confirm-password" class="form-label">Confirm New Password</label>
+                                        <input type="password" class="form-control" id="confirm-password" required>
+                                    </div>
+                                    <div id="password-error" class="alert alert-danger d-none"></div>
+                                    <div id="password-success" class="alert alert-success d-none"></div>
+                                    <button type="submit" id="change-password-btn" class="btn btn-primary">
+                                        <span id="change-password-spinner" class="spinner-border spinner-border-sm d-none me-2"></span>
+                                        Change Password
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Password Requirements</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled">
+                                    <li><i class="bi bi-check-circle text-success me-2"></i>At least 8 characters long</li>
+                                    <li><i class="bi bi-check-circle text-success me-2"></i>Contains uppercase letters</li>
+                                    <li><i class="bi bi-check-circle text-success me-2"></i>Contains lowercase letters</li>
+                                    <li><i class="bi bi-check-circle text-success me-2"></i>Contains numbers</li>
+                                    <li><i class="bi bi-check-circle text-success me-2"></i>Contains special characters</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Status Page -->
+        <div id="account-status-page" class="d-none">
+            <div class="container py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1>Account Status</h1>
+                    <button class="btn btn-secondary" onclick="showPage('dashboard')">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </button>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Account Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="status-loading" class="text-center py-4">
+                                    <div class="spinner-border text-primary"></div>
+                                    <p class="mt-2">Loading status...</p>
+                                </div>
+                                <div id="status-content" class="d-none">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <strong>Username:</strong>
+                                            <p id="status-username" class="mb-0 text-muted">-</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <strong>Account Lock Status:</strong>
+                                            <p id="status-locked" class="mb-0">-</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <strong>Session Created:</strong>
+                                            <p id="status-session-created" class="mb-0 text-muted">-</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <strong>Session Expires:</strong>
+                                            <p id="status-session-expires" class="mb-0 text-muted">-</p>
+                                        </div>
+                                        <div class="col-12 mb-3">
+                                            <strong>Last Activity:</strong>
+                                            <p id="status-last-activity" class="mb-0 text-muted">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="status-error" class="alert alert-danger d-none"></div>
+                            </div>
+                        </div>
